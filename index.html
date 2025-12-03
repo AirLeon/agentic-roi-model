@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AultCare Agentic AI Program: ROI Model</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart Data Labels Plugin for clearer pie charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9', 
+                            600: '#0284c7', 
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        ault: {
+                            blue: '#003865', // Deep Navy Blue
+                            gold: '#FFC72C', // Bright Gold
+                            red: '#D32F2F',  // For Costs
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+        .nav-item.active {
+            border-bottom: 2px solid #003865;
+            color: #003865;
+            font-weight: 700;
+        }
+        
+        /* Custom Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #003865;
+            cursor: pointer;
+            margin-top: -8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: border-color 0.2s;
+        }
+        
+        /* Variant for Cost Sliders */
+        input[type=range].cost-slider::-webkit-slider-thumb {
+            border-color: #D32F2F;
+        }
+        input[type=range].cost-slider:focus::-webkit-slider-thumb {
+            border-color: #b91c1c;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+        input[type=range]:focus::-webkit-slider-thumb {
+            border-color: #FFC72C;
+        }
+
+        /* Logo Styling */
+        .logo-text {
+            color: #003865;
+            font-family: 'Merriweather', serif;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- AultCare Logo -->
+                <div class="flex items-center gap-2">
+                    <div class="relative flex items-center justify-center w-10 h-10 bg-ault-blue rounded-md shadow-sm">
+                        <span class="text-ault-gold text-2xl font-bold leading-none" style="margin-top: -2px;"></span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-2xl logo-text leading-none">AultCare</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-0.5">Agentic AI Program: ROI Model</span>
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active px-3 py-2 text-sm font-medium text-gray-900 transition-colors">Executive Dashboard</button>
+                    <button onclick="switchTab('roi')" id="nav-roi" class="nav-item px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">ROI Modeler</button>
+                    <button onclick="switchTab('roadmap')" id="nav-roadmap" class="nav-item px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">Roadmap</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="space-y-8 animate-fade-in">
+            <!-- Intro Text -->
+            <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-bold text-ault-blue mb-2">Executive Summary</h2>
+                <p class="text-gray-600 leading-relaxed max-w-4xl">
+                    This strategic roadmap outlines the deployment of the DRUID AI platform across AultCare's Provider and Member support units. 
+                    Addressing a total volume of <strong>4,400 calls per week</strong>, the program aims to contain routine inquiries 
+                    and augment agent performance through a 3-Phase rollout.
+                </p>
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Gross Benefit -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Annual Gross Benefit</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" id="kpi-savings">$0</p>
+                    <p class="text-[10px] text-green-600 mt-1 font-bold bg-green-50 inline-block px-1.5 py-0.5 rounded">SAVINGS DRIVER</p>
+                </div>
+                
+                <!-- Total Cost -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-ault-red hover:shadow-md transition-shadow">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Investment</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" id="kpi-costs">$140,000</p>
+                    <p class="text-[10px] text-red-600 mt-1 font-bold bg-red-50 inline-block px-1.5 py-0.5 rounded">COST DRIVER</p>
+                </div>
+
+                <!-- Net Benefit -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-brand-600 hover:shadow-md transition-shadow">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Annual Benefit</p>
+                    <p class="text-3xl font-bold text-brand-700 mt-2" id="kpi-net">$0</p>
+                    <p class="text-[10px] text-brand-600 mt-1 font-bold">GROSS - COSTS</p>
+                </div>
+
+                <!-- Payback -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Payback Period</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" id="kpi-payback">0.0 Mos</p>
+                    <p class="text-[10px] text-orange-600 mt-1 font-bold">DYNAMIC CALC</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-brand-500 rounded-full"></span>
+                        Projected Savings by Phase
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="dashboardBarChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
+                        Call Volume Distribution
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="dashboardDoughnutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ROI MODELER VIEW -->
+        <section id="view-roi" class="hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b border-gray-100">
+                    <div>
+                        <h2 class="text-2xl font-bold text-ault-blue">Interactive ROI Modeler</h2>
+                        <p class="text-sm text-gray-500 mt-1">Adjust benefits and costs to simulate financial outcomes.</p>
+                    </div>
+                    <div class="flex bg-gray-100 p-1 rounded-lg mt-4 md:mt-0">
+                        <button onclick="applyPreset('conservative')" id="btn-conservative" class="px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900">Conservative</button>
+                        <button onclick="applyPreset('target')" id="btn-target" class="px-4 py-2 text-sm font-medium rounded-md bg-white shadow text-brand-600 transition-all transform scale-105">Target</button>
+                        <button onclick="applyPreset('optimistic')" id="btn-optimistic" class="px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900">Optimistic</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <!-- LEFT COLUMN: SAVINGS DRIVERS -->
+                    <div class="bg-brand-50 p-6 rounded-xl border border-brand-100">
+                        <h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider mb-8 flex items-center gap-2">
+                            <span class="text-xl">📈</span> Savings Drivers
+                        </h3>
+                        
+                        <!-- Cost Per Call -->
+                        <div class="space-y-4 mb-10">
+                            <div class="flex justify-between items-end">
+                                <label class="text-sm font-medium text-gray-600">Cost Per Call</label>
+                                <span class="text-xl font-bold text-gray-900" id="costDisplay">$5.50</span>
+                            </div>
+                            <input type="range" min="3.00" max="15.00" step="0.50" value="5.50" id="inputCost" class="w-full">
+                        </div>
+
+                        <!-- Phase 1 Slider -->
+                        <div class="space-y-4 mb-10 relative">
+                            <div class="absolute -top-6 left-0 text-[10px] font-bold text-brand-700 bg-white px-2 py-0.5 rounded shadow-sm border border-brand-100">PHASE 1 (PROVIDER)</div>
+                            <div class="flex justify-between items-end mt-2">
+                                <label class="text-xs text-gray-400">Deflection %</label>
+                                <span class="text-2xl font-black text-brand-600" id="provRateDisplay">50%</span>
+                            </div>
+                            <input type="range" min="0" max="100" step="1" value="50" id="inputProvRate" class="w-full">
+                        </div>
+
+                         <!-- Phase 2 Slider -->
+                         <div class="space-y-4 mb-10 relative">
+                            <div class="absolute -top-6 left-0 text-[10px] font-bold text-purple-700 bg-white px-2 py-0.5 rounded shadow-sm border border-purple-100">PHASE 2 (MEMBER)</div>
+                            <div class="flex justify-between items-end mt-2">
+                                <label class="text-xs text-gray-400">Deflection %</label>
+                                <span class="text-2xl font-black text-purple-600" id="memRateDisplay">65%</span>
+                            </div>
+                            <input type="range" min="0" max="100" step="1" value="65" id="inputMemRate" class="w-full">
+                        </div>
+
+                        <!-- Phase 3 Slider (NEW) -->
+                        <div class="space-y-4 relative">
+                            <div class="absolute -top-6 left-0 text-[10px] font-bold text-orange-700 bg-white px-2 py-0.5 rounded shadow-sm border border-orange-100">PHASE 3 (AGENT ASSIST)</div>
+                            <div class="flex justify-between items-end mt-2">
+                                <label class="text-xs text-gray-400">Efficiency Gain %</label>
+                                <span class="text-2xl font-black text-orange-600" id="assistRateDisplay">30%</span>
+                            </div>
+                            <input type="range" min="0" max="50" step="1" value="30" id="inputAssistRate" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: COST DRIVERS -->
+                    <div class="bg-red-50 p-6 rounded-xl border border-red-100 h-fit">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-sm font-bold text-red-800 uppercase tracking-wider flex items-center gap-2">
+                                <span class="text-xl">💰</span> Program Investment
+                            </h3>
+                            <span class="text-lg font-bold text-red-700" id="totalCostDisplayHeader">$140k</span>
+                        </div>
+
+                        <!-- Cost Sliders Grid -->
+                        <div class="space-y-6">
+                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Platform License</span><span class="font-bold text-red-700" id="disp-cost-plat">$50k</span></div><input type="range" min="0" max="100" step="1" value="50" id="input-cost-plat" class="w-full cost-slider"></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Agent License</span><span class="font-bold text-red-700" id="disp-cost-agent">$36k</span></div><input type="range" min="0" max="100" step="1" value="36" id="input-cost-agent" class="w-full cost-slider"></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">STT/TTS Usage</span><span class="font-bold text-red-700" id="disp-cost-stt">$10k</span></div><input type="range" min="0" max="50" step="1" value="10" id="input-cost-stt" class="w-full cost-slider"></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Professional Services</span><span class="font-bold text-red-700" id="disp-cost-serv">$20k</span></div><input type="range" min="0" max="100" step="5" value="20" id="input-cost-serv" class="w-full cost-slider"></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Premium Support</span><span class="font-bold text-red-700" id="disp-cost-supp">$24k</span></div><input type="range" min="0" max="50" step="1" value="24" id="input-cost-supp" class="w-full cost-slider"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- BOTTOM ROW: Summary Table + Distribution Chart -->
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Distribution Chart (NEW) -->
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 col-span-1">
+                        <h4 class="text-sm font-bold text-gray-700 mb-4 text-center">Savings Distribution</h4>
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Summary Table -->
+                    <div class="col-span-1 lg:col-span-2 overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+                        <table class="min-w-full divide-y divide-gray-200 h-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Metric</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Description</th>
+                                    <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Annual Value</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 text-sm font-bold text-gray-900">Gross Savings</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Total automated call volume × Cost per call</td>
+                                    <td class="px-6 py-4 text-sm font-bold text-green-600 text-right" id="tableGross">$0</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 text-sm font-bold text-gray-900">Total Investment</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Sum of licenses, services, and support</td>
+                                    <td class="px-6 py-4 text-sm font-bold text-red-600 text-right" id="tableCosts">$0</td>
+                                </tr>
+                                <tr class="bg-brand-50">
+                                    <td class="px-6 py-4 text-sm font-black text-brand-900">NET ANNUAL BENEFIT</td>
+                                    <td class="px-6 py-4 text-sm text-brand-700">Gross Savings - Total Investment</td>
+                                    <td class="px-6 py-4 text-lg font-black text-brand-700 text-right" id="tableNet">$0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ROADMAP VIEW -->
+        <section id="view-roadmap" class="hidden space-y-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <h2 class="text-2xl font-bold text-ault-blue mb-8">Strategic Execution Roadmap</h2>
+                <div class="relative border-l-2 border-gray-200 ml-4 space-y-12">
+                    <!-- Phase 1 -->
+                    <div class="relative pl-8 group">
+                        <span class="absolute -left-[9px] top-6 h-4 w-4 rounded-full bg-brand-500 ring-4 ring-white group-hover:scale-125 transition-transform"></span>
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-brand-200">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-900">Phase 1: Provider Deflection</h3>
+                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold mt-2 sm:mt-0">Q4 2025 • Foundation</span>
+                            </div>
+                            <p class="text-gray-600 mb-6">Focus on high-volume administrative tasks (1,800 calls/week) using QNXT integration.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-brand-50 p-4 rounded-lg border border-brand-100">
+                                    <h4 class="font-bold text-xs text-brand-800 uppercase mb-3">Key Use Cases</h4>
+                                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
+                                        <li>"Is this patient active & eligible?"</li>
+                                        <li>"Status of claim 12345"</li>
+                                        <li>"Prior Authorization Check"</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Integrations</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">QNXT (SQL)</span>
+                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">AudioCodes SBC</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Phase 2 -->
+                    <div class="relative pl-8 group">
+                        <span class="absolute -left-[9px] top-6 h-4 w-4 rounded-full bg-purple-500 ring-4 ring-white group-hover:scale-125 transition-transform"></span>
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-purple-200">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-900">Phase 2: Member Deflection</h3>
+                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold mt-2 sm:mt-0">Q1 2026 • Expansion</span>
+                            </div>
+                            <p class="text-gray-600 mb-6">Addressing complex member queries (2,600 calls/week) with empathetic AI logic.</p>
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                                    <h4 class="font-bold text-xs text-purple-800 uppercase mb-3">Key Use Cases</h4>
+                                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
+                                        <li>"Is Dr. Smith in-network?"</li>
+                                        <li>"What is my co-pay?"</li>
+                                        <li>"Send replacement ID card"</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Integrations</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">EBS (Benefits)</span>
+                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">Geo-Location</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Phase 3 -->
+                    <div class="relative pl-8 group">
+                        <span class="absolute -left-[9px] top-6 h-4 w-4 rounded-full bg-orange-500 ring-4 ring-white group-hover:scale-125 transition-transform"></span>
+                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-orange-200">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-900">Phase 3: Agent Assist</h3>
+                                <span class="bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full font-bold mt-2 sm:mt-0">Q2 2026 • Augmentation</span>
+                            </div>
+                            <p class="text-gray-600 mb-6">Real-time augmentation for residual complex calls to reduce AHT.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-orange-50 p-4 rounded-lg border border-orange-100">
+                                    <h4 class="font-bold text-xs text-orange-800 uppercase mb-3">Capabilities</h4>
+                                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
+                                        <li>Real-time Transcription</li>
+                                        <li>"Next Best Action" Suggestions</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Tech Upgrade</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">SIP Forking</span>
+                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">Agent Desktop UI</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JS Logic -->
+    <script>
+        // --- CONSTANTS ---
+        const VOL_PROV = 93600;  
+        const VOL_MEM = 135200;  
+        const VOL_RESID = 100000; 
+
+        // --- STATE ---
+        const state = {
+            costPerCall: 5.50,
+            rateProv: 0.50,
+            rateMem: 0.65,
+            rateAssist: 0.30,
+            // Costs (in thousands)
+            costs: {
+                plat: 50,
+                agent: 36,
+                stt: 10,
+                serv: 20,
+                supp: 24
+            }
+        };
+
+        const presets = {
+            conservative: { p: 0.40, m: 0.50, a: 0.15 },
+            target: { p: 0.50, m: 0.65, a: 0.30 },
+            optimistic: { p: 0.60, m: 0.80, a: 0.45 }
+        };
+
+        let barChart, doughnutChart, distributionChart;
+
+        function initCharts() {
+            Chart.defaults.font.family = 'Inter';
+
+            // 1. Dashboard Bar
+            const barCtx = document.getElementById('dashboardBarChart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Phase 1 (Provider)', 'Phase 2 (Member)', 'Phase 3 (Agent Assist)'],
+                    datasets: [{
+                        label: 'Gross Savings ($)',
+                        data: [0, 0, 0],
+                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#f97316'],
+                        borderRadius: 6,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 2. Dashboard Doughnut (Volume)
+            const doughnutCtx = document.getElementById('dashboardDoughnutChart').getContext('2d');
+            doughnutChart = new Chart(doughnutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Provider', 'Member', 'Residual'],
+                    datasets: [{
+                        data: [VOL_PROV, VOL_MEM, VOL_RESID],
+                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#e2e8f0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 3. ROI Distribution Chart (NEW)
+            const distCtx = document.getElementById('distributionChart').getContext('2d');
+            distributionChart = new Chart(distCtx, {
+                type: 'doughnut',
+                plugins: [ChartDataLabels],
+                data: {
+                    labels: ['P1 (Prov)', 'P2 (Mem)', 'P3 (Assist)'],
+                    datasets: [{
+                        data: [1, 1, 1], // Init dummy
+                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#f97316'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'right', labels: { boxWidth: 12, font: {size: 10} } },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (value, ctx) => {
+                                let sum = 0;
+                                let dataArr = ctx.chart.data.datasets[0].data;
+                                dataArr.map(data => { sum += data; });
+                                let percentage = (value*100 / sum).toFixed(0)+"%";
+                                return percentage;
+                            }
+                        }
+                    },
+                    layout: { padding: 10 }
+                }
+            });
+        }
+
+        function updateCalculations() {
+            // 1. Calculate Gross Savings
+            const cost = state.costPerCall;
+            const rProv = state.rateProv;
+            const rMem = state.rateMem;
+            const rAssist = state.rateAssist;
+
+            const saveProv = VOL_PROV * rProv * cost;
+            const saveMem = VOL_MEM * rMem * cost;
+            const saveAssist = (VOL_RESID * cost) * rAssist;
+
+            const grossSavings = saveProv + saveMem + saveAssist;
+            const totalCalls = (VOL_PROV * rProv) + (VOL_MEM * rMem);
+
+            // 2. Calculate Total Costs
+            const totalCostK = Object.values(state.costs).reduce((a, b) => a + b, 0);
+            const totalCost = totalCostK * 1000;
+
+            // 3. Calculate Net & Payback
+            const netBenefit = grossSavings - totalCost;
+            let payback = 0;
+            if(grossSavings > 0) {
+                payback = (totalCost / grossSavings) * 12;
+            } else {
+                payback = 99; // Cap
+            }
+
+            // 4. Update UI - ROI Modeler Inputs Text
+            document.getElementById('costDisplay').innerText = '$' + cost.toFixed(2);
+            document.getElementById('provRateDisplay').innerText = Math.round(rProv * 100) + '%';
+            document.getElementById('memRateDisplay').innerText = Math.round(rMem * 100) + '%';
+            document.getElementById('assistRateDisplay').innerText = Math.round(rAssist * 100) + '%'; // New
+            
+            // Costs Display Text
+            document.getElementById('disp-cost-plat').innerText = '$' + state.costs.plat + 'k';
+            document.getElementById('disp-cost-agent').innerText = '$' + state.costs.agent + 'k';
+            document.getElementById('disp-cost-stt').innerText = '$' + state.costs.stt + 'k';
+            document.getElementById('disp-cost-serv').innerText = '$' + state.costs.serv + 'k';
+            document.getElementById('disp-cost-supp').innerText = '$' + state.costs.supp + 'k';
+            document.getElementById('totalCostDisplayHeader').innerText = '$' + totalCostK + 'k';
+
+            // 5. Update UI - KPI Cards
+            document.getElementById('kpi-savings').innerText = '$' + Math.round(grossSavings).toLocaleString();
+            document.getElementById('kpi-costs').innerText = '$' + Math.round(totalCost).toLocaleString();
+            document.getElementById('kpi-net').innerText = '$' + Math.round(netBenefit).toLocaleString();
+            document.getElementById('kpi-payback').innerText = payback.toFixed(1) + ' Mos';
+
+            // 6. Update Summary Table
+            document.getElementById('tableGross').innerText = '$' + Math.round(grossSavings).toLocaleString();
+            document.getElementById('tableCosts').innerText = '$' + Math.round(totalCost).toLocaleString();
+            document.getElementById('tableNet').innerText = '$' + Math.round(netBenefit).toLocaleString();
+
+            // 7. Update Charts
+            barChart.data.datasets[0].data = [saveProv, saveMem, saveAssist];
+            barChart.update();
+
+            // Update Distribution Chart
+            distributionChart.data.datasets[0].data = [saveProv, saveMem, saveAssist];
+            distributionChart.update();
+        }
+
+        function applyPreset(name) {
+            const p = presets[name];
+            document.getElementById('inputProvRate').value = p.p * 100;
+            document.getElementById('inputMemRate').value = p.m * 100;
+            document.getElementById('inputAssistRate').value = p.a * 100; // New
+            
+            state.rateProv = p.p;
+            state.rateMem = p.m;
+            state.rateAssist = p.a;
+
+            ['conservative', 'target', 'optimistic'].forEach(n => {
+                const btn = document.getElementById('btn-' + n);
+                if(n === name) {
+                    btn.classList.add('bg-white', 'shadow', 'text-brand-600', 'scale-105');
+                    btn.classList.remove('text-gray-600', 'hover:text-gray-900');
+                } else {
+                    btn.classList.remove('bg-white', 'shadow', 'text-brand-600', 'scale-105');
+                    btn.classList.add('text-gray-600', 'hover:text-gray-900');
+                }
+            });
+            updateCalculations();
+        }
+
+        function switchTab(tabId) {
+            ['dashboard', 'roi', 'roadmap'].forEach(id => {
+                document.getElementById('view-' + id).classList.add('hidden');
+                document.getElementById('nav-' + id).classList.remove('active', 'text-gray-900');
+                document.getElementById('nav-' + id).classList.add('text-gray-500');
+            });
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            document.getElementById('nav-' + tabId).classList.add('active', 'text-gray-900');
+            document.getElementById('nav-' + tabId).classList.remove('text-gray-500');
+            
+            if (tabId === 'dashboard') {
+                barChart.resize();
+                doughnutChart.resize();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            initCharts();
+            updateCalculations();
+
+            // Benefits Sliders
+            document.getElementById('inputCost').addEventListener('input', (e) => {
+                state.costPerCall = parseFloat(e.target.value);
+                updateCalculations();
+            });
+            document.getElementById('inputProvRate').addEventListener('input', (e) => {
+                state.rateProv = parseInt(e.target.value) / 100;
+                updateCalculations();
+            });
+            document.getElementById('inputMemRate').addEventListener('input', (e) => {
+                state.rateMem = parseInt(e.target.value) / 100;
+                updateCalculations();
+            });
+            // New Phase 3 Slider
+            document.getElementById('inputAssistRate').addEventListener('input', (e) => {
+                state.rateAssist = parseInt(e.target.value) / 100;
+                updateCalculations();
+            });
+
+            // Cost Sliders
+            ['plat', 'agent', 'stt', 'serv', 'supp'].forEach(key => {
+                document.getElementById('input-cost-' + key).addEventListener('input', (e) => {
+                    state.costs[key] = parseInt(e.target.value);
+                    updateCalculations();
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
