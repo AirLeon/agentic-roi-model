@@ -65,6 +65,15 @@
             padding-left: 12px;
             background: #f0fdf4;
         }
+
+        .pulse-correlated {
+            animation: pulseBg 500ms ease-out;
+        }
+
+        @keyframes pulseBg {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35); }
+            100% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        }
         
         .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     </style>
@@ -135,7 +144,17 @@
                         <h3 class="font-bold text-white text-sm uppercase flex items-center gap-2">
                             <span>1</span> Needed Inputs
                         </h3>
-                        <span class="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded font-bold">CRITICAL</span>
+                        <div class="flex items-center gap-2">
+                            <button
+                                id="btn-reset-corr"
+                                type="button"
+                                class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-cu-500 focus:ring-offset-2 focus:ring-offset-fin-blue transition-colors"
+                                title="Resets baseline assumptions used for correlated sliders (calls-per-member + baseline enrollment)."
+                            >
+                                Reset correlations
+                            </button>
+                            <span class="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded font-bold">CRITICAL</span>
+                        </div>
                     </div>
                     <div class="p-6 space-y-6">
                         <!-- Members (MASTER KNOB) -->
@@ -272,6 +291,9 @@
                                 <span class="text-[10px] text-indigo-600 font-bold bg-indigo-100 px-1.5 rounded">Adoption</span>
                             </div>
                             <input type="range" id="lev-up" min="0" max="50" value="18" class="w-full">
+                            <div class="text-[10px] text-gray-500 mt-2">
+                                Effective Autopay: <span class="font-bold text-gray-700" id="disp-eff-enroll">46%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -321,7 +343,7 @@
                                     <div class="text-xs text-gray-400">Late Payment Reduction (20 days float)</div>
                                 </td>
                                 <td class="px-6 py-4 text-gray-500 text-xs font-mono">
-                                    <span id="txt-late-count" class="font-bold text-gray-700">0</span> fewer late/mo
+                                    <span id="txt-late-count" class="font-bold text-gray-700">0</span> fewer late/mo @ <span id="txt-eff-enroll" class="font-bold text-gray-700">0%</span> enroll
                                 </td>
                                 <td class="px-6 py-4 text-right font-bold text-gray-900" id="txt-late-val">$0</td>
                             </tr>
@@ -332,7 +354,7 @@
                                     <div class="text-xs text-gray-400">Failed Payment Cure</div>
                                 </td>
                                 <td class="px-6 py-4 text-gray-500 text-xs font-mono">
-                                    <span id="txt-fail-count" class="font-bold text-gray-700">0</span> recovered/mo @ $<span id="txt-inv-cost">145</span>
+                                    <span id="txt-fail-count" class="font-bold text-gray-700">0</span> recovered/mo @ $<span id="txt-inv-cost">145</span> • <span id="txt-eff-enroll-2" class="font-bold text-gray-700">0%</span> enroll
                                 </td>
                                 <td class="px-6 py-4 text-right font-bold text-blue-600" id="txt-fail-val">$0</td>
                             </tr>
@@ -366,14 +388,77 @@
             levCall: 35,
             levRec: 35,
             levUp: 18,
-            // Internal Ratios for Correlation
-            ratios: {
+            // Correlation baselines (keeps interactions reversible / non-drifting)
+            baselines: {
+                enroll: 28,
                 callsPerMember: 0.2, // 12k/60k
             }
         };
 
         // --- Charts ---
         let barChart, pieChart;
+        let calcScheduled = false;
+        let initialBaselines = null;
+
+        const fmtInt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+        const fmtMoney0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+        const fmtMoneyCompact = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 2 });
+
+        function clamp(n, min, max) {
+            return Math.min(max, Math.max(min, n));
+        }
+
+        function safeNumber(val, fallback) {
+            const n = Number(val);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function setPulse(el) {
+            if(!el) return;
+            el.classList.remove('pulse-correlated');
+            // force reflow so animation can restart
+            void el.offsetWidth;
+            el.classList.add('pulse-correlated');
+        }
+
+        function scheduleCalculate() {
+            if(calcScheduled) return;
+            calcScheduled = true;
+            requestAnimationFrame(() => {
+                calcScheduled = false;
+                calculate();
+            });
+        }
+
+        function effectiveEnrollPct() {
+            return clamp(state.enroll + state.levUp, 0, 100);
+        }
+
+        function callCorrelationFactor() {
+            // Heuristic: each +1% effective enrollment reduces calls by ~0.5% (reversible; based on baseline enroll)
+            const delta = effectiveEnrollPct() - state.baselines.enroll;
+            return clamp(1 - (delta * 0.005), 0.2, 1.25);
+        }
+
+        function recomputeCallsFromCorrelations({ pulse = false } = {}) {
+            const callsBox = document.getElementById('box-calls');
+            const factor = callCorrelationFactor();
+            const callsInput = document.getElementById('in-calls');
+            const min = callsInput ? Number(callsInput.min || 0) : 0;
+            const max = callsInput ? Number(callsInput.max || 1000000000) : 1000000000;
+            const calls = Math.round(state.members * state.baselines.callsPerMember * factor);
+            state.calls = clamp(calls, min, max);
+            if(callsInput) callsInput.value = String(state.calls);
+            if(pulse) setPulse(callsBox);
+        }
+
+        function resetCorrelations() {
+            if(!initialBaselines) return;
+            state.baselines.enroll = initialBaselines.enroll;
+            state.baselines.callsPerMember = initialBaselines.callsPerMember;
+            recomputeCallsFromCorrelations({ pulse: true });
+            scheduleCalculate();
+        }
 
         function initCharts() {
             Chart.defaults.font.family = 'Inter';
@@ -395,9 +480,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [2, 4] },
+                            ticks: {
+                                callback: (v) => fmtMoneyCompact.format(Number(v))
+                            }
+                        },
                         x: { grid: { display: false } }
                     }
                 }
@@ -419,6 +511,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false,
                     plugins: {
                         legend: { position: 'bottom' },
                         datalabels: {
@@ -439,13 +532,29 @@
 
         // --- Logic ---
         function calculate() {
-            // 1. Volumes based on Members
+            // Sanitize core state (guards live typing into number inputs)
+            state.members = Math.round(clamp(safeNumber(state.members, 0), 0, 1000000000));
+            state.enroll = Math.round(clamp(safeNumber(state.enroll, 0), 0, 100));
+            state.calls = clamp(safeNumber(state.calls, 0), 0, 1000000000);
+            state.aht = clamp(safeNumber(state.aht, 0), 0, 1440);
+            state.hourly = clamp(safeNumber(state.hourly, 0), 0, 1000);
+            state.failRate = clamp(safeNumber(state.failRate, 0), 0, 100);
+            state.lateRate = clamp(safeNumber(state.lateRate, 0), 0, 100);
+            state.invoice = clamp(safeNumber(state.invoice, 0), 0, 1000000);
+            state.solCost = clamp(safeNumber(state.solCost, 0), 0, 1000000000);
+            state.levCall = clamp(safeNumber(state.levCall, 0), 0, 100);
+            state.levRec = clamp(safeNumber(state.levRec, 0), 0, 100);
+            state.levUp = clamp(safeNumber(state.levUp, 0), 0, 100);
+
+            const effEnroll = effectiveEnrollPct();
+
+            // 1. Baseline volumes (for display)
             const latePayers = state.members * (state.lateRate / 100);
             const failCount = state.members * (state.failRate / 100);
             
             // Update Volume Displays
-            document.getElementById('vol-fail').innerText = Math.round(failCount).toLocaleString();
-            document.getElementById('vol-late').innerText = Math.round(latePayers).toLocaleString();
+            document.getElementById('vol-fail').innerText = fmtInt.format(Math.round(failCount));
+            document.getElementById('vol-late').innerText = fmtInt.format(Math.round(latePayers));
 
             // 2. Labor Savings Logic
             // Call reduction calculation
@@ -454,16 +563,17 @@
             const laborSavYr = hrsSavedMo * state.hourly * 12;
 
             // 3. Late Payment Logic (Cash Flow Accel)
-            // 30% reduction assumption from prompt, scaled slightly by uplift lever?
             // Prompt simplified: "Autopay cuts this by 30%".
             // Value formula: Count * (Inv * 20/365)
-            const lateReduction = latePayers * 0.30; 
+            // Enrollment + uplift now drive how much of the base sees improvement.
+            const lateReduction = latePayers * (effEnroll / 100) * 0.30; 
             const cashFlowValMo = lateReduction * (state.invoice * (20/365));
             const lateSavYr = cashFlowValMo * 12;
 
             // 4. Failed Payment Recovery Logic
             // Recovery Lever %
-            const recoveredCountMo = failCount * (state.levRec / 100);
+            // Enrollment + uplift gate how much volume is eligible for automated recovery.
+            const recoveredCountMo = failCount * (effEnroll / 100) * (state.levRec / 100);
             const recSavYr = recoveredCountMo * state.invoice * 12;
 
             // Totals
@@ -471,98 +581,85 @@
             const netBenefit = totalBenefit - state.solCost;
             
             // Metrics
-            const roi = totalBenefit / state.solCost;
-            let payback = 0;
-            if(totalBenefit > 0) payback = (state.solCost / totalBenefit) * 12;
+            const roi = state.solCost > 0 ? (totalBenefit / state.solCost) : null;
+            const payback = totalBenefit > 0 ? (state.solCost / totalBenefit) * 12 : null;
 
             // --- Update UI ---
             
             // Top Inputs
-            document.getElementById('disp-members').innerText = Number(state.members).toLocaleString();
+            document.getElementById('disp-members').innerText = fmtInt.format(state.members);
             document.getElementById('disp-enroll').innerText = state.enroll + '%';
-            document.getElementById('disp-calls').innerText = Number(state.calls).toLocaleString();
+            document.getElementById('disp-calls').innerText = fmtInt.format(Math.round(state.calls));
             document.getElementById('disp-fail').innerText = state.failRate + '%';
             document.getElementById('disp-late').innerText = state.lateRate + '%';
-            document.getElementById('disp-inv').innerText = '$' + state.invoice;
-            document.getElementById('disp-sol').innerText = '$' + Number(state.solCost).toLocaleString();
+            document.getElementById('disp-inv').innerText = fmtMoney0.format(state.invoice);
+            document.getElementById('disp-sol').innerText = fmtMoney0.format(state.solCost);
             
             // Levers
             document.getElementById('lev-call-disp').innerText = state.levCall + '%';
             document.getElementById('lev-rec-disp').innerText = state.levRec + '%';
             document.getElementById('lev-up-disp').innerText = '+' + state.levUp + '%';
+            document.getElementById('disp-eff-enroll').innerText = effEnroll.toFixed(0) + '%';
 
             // KPI Cards
-            document.getElementById('kpi-benefit').innerText = '$' + (totalBenefit / 1000000).toFixed(2) + 'M';
-            document.getElementById('kpi-revenue').innerText = '$' + (recSavYr / 1000000).toFixed(2) + 'M';
-            document.getElementById('kpi-roi').innerText = roi.toFixed(1) + 'x';
-            document.getElementById('kpi-payback').innerText = payback.toFixed(1) + ' Mo';
+            document.getElementById('kpi-benefit').innerText = fmtMoneyCompact.format(totalBenefit);
+            document.getElementById('kpi-revenue').innerText = fmtMoneyCompact.format(recSavYr);
+            document.getElementById('kpi-roi').innerText = roi === null ? '—' : (roi.toFixed(1) + 'x');
+            document.getElementById('kpi-payback').innerText = payback === null ? '—' : (payback.toFixed(1) + ' Mo');
 
             // Table Data
-            document.getElementById('txt-labor-hrs').innerText = Math.round(hrsSavedMo * 12).toLocaleString();
+            document.getElementById('txt-labor-hrs').innerText = fmtInt.format(Math.round(hrsSavedMo * 12));
             document.getElementById('txt-hr-cost').innerText = state.hourly;
-            document.getElementById('txt-labor-val').innerText = '$' + Math.round(laborSavYr).toLocaleString();
+            document.getElementById('txt-labor-val').innerText = fmtMoney0.format(laborSavYr);
             
-            document.getElementById('txt-late-count').innerText = Math.round(lateReduction).toLocaleString();
-            document.getElementById('txt-late-val').innerText = '$' + Math.round(lateSavYr).toLocaleString();
+            document.getElementById('txt-late-count').innerText = fmtInt.format(Math.round(lateReduction));
+            document.getElementById('txt-eff-enroll').innerText = effEnroll.toFixed(0) + '%';
+            document.getElementById('txt-late-val').innerText = fmtMoney0.format(lateSavYr);
 
-            document.getElementById('txt-fail-count').innerText = Math.round(recoveredCountMo).toLocaleString();
+            document.getElementById('txt-fail-count').innerText = fmtInt.format(Math.round(recoveredCountMo));
             document.getElementById('txt-inv-cost').innerText = state.invoice;
-            document.getElementById('txt-fail-val').innerText = '$' + Math.round(recSavYr).toLocaleString();
+            document.getElementById('txt-eff-enroll-2').innerText = effEnroll.toFixed(0) + '%';
+            document.getElementById('txt-fail-val').innerText = fmtMoney0.format(recSavYr);
 
-            document.getElementById('txt-total-val').innerText = '$' + Math.round(totalBenefit).toLocaleString();
+            document.getElementById('txt-total-val').innerText = fmtMoney0.format(totalBenefit);
 
             // Charts
             barChart.data.datasets[0].data = [laborSavYr, lateSavYr, recSavYr];
-            barChart.update();
+            barChart.update('none');
 
-            pieChart.data.datasets[0].data = [state.solCost, (netBenefit > 0 ? netBenefit : 0)];
-            pieChart.update();
+            if(netBenefit >= 0) {
+                pieChart.data.labels = ['Investment', 'Net Profit'];
+                pieChart.data.datasets[0].backgroundColor = ['#ef4444', '#22c55e'];
+                pieChart.data.datasets[0].data = [state.solCost, netBenefit];
+            } else {
+                pieChart.data.labels = ['Investment', 'Net Loss'];
+                pieChart.data.datasets[0].backgroundColor = ['#ef4444', '#f97316'];
+                pieChart.data.datasets[0].data = [state.solCost, Math.abs(netBenefit)];
+            }
+            pieChart.update('none');
         }
 
         // --- Correlation Engine ---
         function updateMembers(newVal) {
-            const oldVal = state.members;
-            state.members = parseInt(newVal);
-            
-            // 1. Correlate Calls (Preserve Ratio)
-            const ratioCalls = state.calls / oldVal;
-            // Or simpler: Recalculate based on initial baseline logic, 
-            // but user might have adjusted calls manually. 
-            // Best UX: Scale calls proportionally.
-            const newCalls = Math.round(state.calls * (state.members / oldVal));
-            state.calls = newCalls;
-            document.getElementById('in-calls').value = newCalls;
-
-            // Recalc Main
-            calculate();
+            state.members = parseInt(newVal, 10);
+            recomputeCallsFromCorrelations({ pulse: true });
+            scheduleCalculate();
         }
 
         function updateEnrollment(newVal) {
-            const oldVal = state.enroll;
-            state.enroll = parseInt(newVal);
-
-            // Inverse Correlation Logic:
-            // If Enrollment goes UP, Calls should go DOWN.
-            // Heuristic: For every 1% increase in Autopay, Calls drop by 0.5% (assumption)
-            const delta = state.enroll - oldVal;
-            if(delta !== 0) {
-                // Example: Delta is +10%. Calls drop by 5%.
-                const callImpact = 1 - (delta * 0.005); 
-                const newCalls = Math.round(state.calls * callImpact);
-                // Clamp
-                if(newCalls > 1000) {
-                    state.calls = newCalls;
-                    document.getElementById('in-calls').value = newCalls;
-                }
-            }
-            calculate();
+            state.enroll = parseInt(newVal, 10);
+            recomputeCallsFromCorrelations({ pulse: true });
+            scheduleCalculate();
         }
 
         // --- Listeners ---
         window.addEventListener('load', () => {
             initCharts();
-            // Set initial ratio
-            state.ratios.callsPerMember = state.calls / state.members;
+            // Set initial baselines
+            state.baselines.enroll = state.enroll;
+            state.baselines.callsPerMember = state.members > 0 ? (state.calls / state.members) : 0;
+            initialBaselines = { ...state.baselines };
+            recomputeCallsFromCorrelations();
             calculate();
 
             // CORRELATED INPUTS
@@ -572,22 +669,40 @@
             document.getElementById('in-enroll').addEventListener('input', (e) => { 
                 updateEnrollment(e.target.value);
             });
+            document.getElementById('btn-reset-corr').addEventListener('click', () => {
+                resetCorrelations();
+                const btn = document.getElementById('btn-reset-corr');
+                const oldText = btn.innerText;
+                btn.innerText = 'Reset ✓';
+                window.setTimeout(() => { btn.innerText = oldText; }, 900);
+            });
 
             // STANDARD INPUTS
-            document.getElementById('in-calls').addEventListener('input', (e) => { state.calls = parseFloat(e.target.value); calculate(); });
-            document.getElementById('in-fail').addEventListener('input', (e) => { state.failRate = parseFloat(e.target.value); calculate(); });
-            document.getElementById('in-late').addEventListener('input', (e) => { state.lateRate = parseFloat(e.target.value); calculate(); });
-            document.getElementById('in-inv').addEventListener('input', (e) => { state.invoice = parseFloat(e.target.value); calculate(); });
-            document.getElementById('in-sol').addEventListener('input', (e) => { state.solCost = parseFloat(e.target.value); calculate(); });
+            document.getElementById('in-calls').addEventListener('input', (e) => {
+                const nextCalls = safeNumber(e.target.value, state.calls);
+                state.calls = nextCalls;
+                // Update baseline so future enrollment/member changes remain reversible.
+                const factor = callCorrelationFactor();
+                state.baselines.callsPerMember = (state.members > 0 && factor > 0) ? (state.calls / (state.members * factor)) : 0;
+                scheduleCalculate();
+            });
+            document.getElementById('in-fail').addEventListener('input', (e) => { state.failRate = safeNumber(e.target.value, state.failRate); scheduleCalculate(); });
+            document.getElementById('in-late').addEventListener('input', (e) => { state.lateRate = safeNumber(e.target.value, state.lateRate); scheduleCalculate(); });
+            document.getElementById('in-inv').addEventListener('input', (e) => { state.invoice = safeNumber(e.target.value, state.invoice); scheduleCalculate(); });
+            document.getElementById('in-sol').addEventListener('input', (e) => { state.solCost = safeNumber(e.target.value, state.solCost); scheduleCalculate(); });
 
             // Manual inputs
-            document.getElementById('in-aht').addEventListener('input', (e) => { state.aht = parseFloat(e.target.value); calculate(); });
-            document.getElementById('in-hourly').addEventListener('input', (e) => { state.hourly = parseFloat(e.target.value); calculate(); });
+            document.getElementById('in-aht').addEventListener('input', (e) => { state.aht = safeNumber(e.target.value, state.aht); scheduleCalculate(); });
+            document.getElementById('in-hourly').addEventListener('input', (e) => { state.hourly = safeNumber(e.target.value, state.hourly); scheduleCalculate(); });
 
             // Levers
-            document.getElementById('lev-call').addEventListener('input', (e) => { state.levCall = parseFloat(e.target.value); calculate(); });
-            document.getElementById('lev-rec').addEventListener('input', (e) => { state.levRec = parseFloat(e.target.value); calculate(); });
-            document.getElementById('lev-up').addEventListener('input', (e) => { state.levUp = parseFloat(e.target.value); calculate(); });
+            document.getElementById('lev-call').addEventListener('input', (e) => { state.levCall = safeNumber(e.target.value, state.levCall); scheduleCalculate(); });
+            document.getElementById('lev-rec').addEventListener('input', (e) => { state.levRec = safeNumber(e.target.value, state.levRec); scheduleCalculate(); });
+            document.getElementById('lev-up').addEventListener('input', (e) => {
+                state.levUp = safeNumber(e.target.value, state.levUp);
+                recomputeCallsFromCorrelations({ pulse: true });
+                scheduleCalculate();
+            });
         });
 
     </script>
