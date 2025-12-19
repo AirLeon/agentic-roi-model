@@ -3,41 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AultCare Agentic AI Program: ROI Model</title>
+    <title>Autopay Automation ROI | Credit Union Model</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chart Data Labels Plugin for clearer pie charts -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind Config -->
+    <!-- Config -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                        serif: ['Merriweather', 'serif'],
+                        display: ['Manrope', 'sans-serif'],
                     },
                     colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9', 
-                            600: '#0284c7', 
-                            800: '#075985',
-                            900: '#0c4a6e',
+                        cu: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e', // Success Green
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534', 
+                            900: '#14532d',
                         },
-                        ault: {
-                            blue: '#003865', // Deep Navy Blue
-                            gold: '#FFC72C', // Bright Gold
-                            red: '#D32F2F',  // For Costs
+                        fin: {
+                            blue: '#0f172a', // Navy
+                            light: '#334155',
                         }
                     }
                 }
@@ -46,431 +45,351 @@
     </script>
 
     <style>
-        body {
-            background-color: #f8fafc;
-            color: #334155;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 300px;
-        }
-        .nav-item.active {
-            border-bottom: 2px solid #003865;
-            color: #003865;
-            font-weight: 700;
-        }
+        body { background-color: #f8fafc; color: #334155; }
         
-        /* Custom Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none; 
-            background: transparent; 
-        }
+        /* Custom Sliders */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 2px solid #003865;
-            cursor: pointer;
-            margin-top: -8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: border-color 0.2s;
+            -webkit-appearance: none; height: 18px; width: 18px;
+            border-radius: 50%; background: #ffffff; border: 2px solid #16a34a;
+            cursor: pointer; margin-top: -7px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #cbd5e1; border-radius: 4px;
+        }
+        input[type=range]:focus::-webkit-slider-thumb { border-color: #14532d; }
+        
+        /* Correlated Input Highlight */
+        .correlated-input {
+            border-left: 3px solid #22c55e;
+            padding-left: 12px;
+            background: #f0fdf4;
         }
         
-        /* Variant for Cost Sliders */
-        input[type=range].cost-slider::-webkit-slider-thumb {
-            border-color: #D32F2F;
-        }
-        input[type=range].cost-slider:focus::-webkit-slider-thumb {
-            border-color: #b91c1c;
-        }
-
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #e2e8f0;
-            border-radius: 4px;
-        }
-        input[type=range]:focus::-webkit-slider-thumb {
-            border-color: #FFC72C;
-        }
-
-        /* Logo Styling */
-        .logo-text {
-            color: #003865;
-            font-family: 'Merriweather', serif;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-        }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col font-sans">
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <!-- AultCare Logo -->
-                <div class="flex items-center gap-2">
-                    <div class="relative flex items-center justify-center w-10 h-10 bg-ault-blue rounded-md shadow-sm">
-                        <span class="text-ault-gold text-2xl font-bold leading-none" style="margin-top: -2px;"></span>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-2xl logo-text leading-none">AultCare</span>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-0.5">Agentic AI Program: ROI Model</span>
-                    </div>
+    <!-- Navbar -->
+    <nav class="bg-fin-blue text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-cu-500 rounded p-1.5">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                
-                <!-- Navigation -->
-                <nav class="hidden md:flex space-x-8">
-                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active px-3 py-2 text-sm font-medium text-gray-900 transition-colors">Executive Dashboard</button>
-                    <button onclick="switchTab('roi')" id="nav-roi" class="nav-item px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">ROI Modeler</button>
-                    <button onclick="switchTab('roadmap')" id="nav-roadmap" class="nav-item px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">Roadmap</button>
-                </nav>
+                <div>
+                    <span class="font-display font-bold text-xl tracking-tight block leading-none">SmartROI</span>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-widest">Credit Union Edition</span>
+                </div>
+            </div>
+            <div class="hidden md:block text-sm text-gray-400">Dynamic Correlation Engine v6.0</div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- KPI Cards (Sticky on Desktop) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 sticky top-20 z-40">
+            <!-- Total Benefit -->
+            <div class="bg-white rounded-xl p-6 shadow-md border-t-4 border-cu-500 card-hover transition-all">
+                <div class="flex justify-between items-start">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Annual Benefit</div>
+                    <svg class="w-4 h-4 text-cu-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <div class="text-3xl font-bold text-fin-blue mt-2" id="kpi-benefit">$1.7M</div>
+                <div class="text-[10px] text-cu-700 font-bold mt-1 bg-cu-100 inline-block px-2 py-0.5 rounded">GROSS SAVINGS</div>
+            </div>
+
+            <!-- Revenue Recovered -->
+            <div class="bg-white rounded-xl p-6 shadow-md border-t-4 border-blue-500 card-hover transition-all">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Revenue Recovered</div>
+                <div class="text-3xl font-bold text-fin-blue mt-2" id="kpi-revenue">$1.4M</div>
+                <div class="text-[10px] text-blue-700 font-bold mt-1 bg-blue-100 inline-block px-2 py-0.5 rounded">FAILED PAYMENTS</div>
+            </div>
+
+            <!-- ROI Multiple -->
+            <div class="bg-white rounded-xl p-6 shadow-md border-t-4 border-indigo-500 card-hover transition-all">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">ROI Multiple</div>
+                <div class="text-3xl font-bold text-fin-blue mt-2" id="kpi-roi">7.3x</div>
+                <div class="text-[10px] text-indigo-700 font-bold mt-1 bg-indigo-100 inline-block px-2 py-0.5 rounded">RETURN ON SPEND</div>
+            </div>
+
+            <!-- Payback -->
+            <div class="bg-white rounded-xl p-6 shadow-md border-t-4 border-orange-400 card-hover transition-all">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Payback Period</div>
+                <div class="text-3xl font-bold text-fin-blue mt-2" id="kpi-payback">1.6 Mo</div>
+                <div class="text-[10px] text-orange-700 font-bold mt-1 bg-orange-100 inline-block px-2 py-0.5 rounded">TIME TO VALUE</div>
             </div>
         </div>
-    </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-
-        <!-- DASHBOARD VIEW -->
-        <section id="view-dashboard" class="space-y-8 animate-fade-in">
-            <!-- Intro Text -->
-            <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-ault-blue mb-2">Executive Summary</h2>
-                <p class="text-gray-600 leading-relaxed max-w-4xl">
-                    This strategic roadmap outlines the deployment of the DRUID AI platform across AultCare's Provider and Member support units. 
-                    Addressing a total volume of <strong>4,400 calls per week</strong>, the program aims to contain routine inquiries 
-                    and augment agent performance through a 3-Phase rollout.
-                </p>
-            </div>
-
-            <!-- Key Metrics Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Gross Benefit -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Annual Gross Benefit</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2" id="kpi-savings">$0</p>
-                    <p class="text-[10px] text-green-600 mt-1 font-bold bg-green-50 inline-block px-1.5 py-0.5 rounded">SAVINGS DRIVER</p>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN: INPUTS (Tiered & Correlated) -->
+            <div class="lg:col-span-4 space-y-6">
                 
-                <!-- Total Cost -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-ault-red hover:shadow-md transition-shadow">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Investment</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2" id="kpi-costs">$140,000</p>
-                    <p class="text-[10px] text-red-600 mt-1 font-bold bg-red-50 inline-block px-1.5 py-0.5 rounded">COST DRIVER</p>
-                </div>
-
-                <!-- Net Benefit -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-brand-600 hover:shadow-md transition-shadow">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Annual Benefit</p>
-                    <p class="text-3xl font-bold text-brand-700 mt-2" id="kpi-net">$0</p>
-                    <p class="text-[10px] text-brand-600 mt-1 font-bold">GROSS - COSTS</p>
-                </div>
-
-                <!-- Payback -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Payback Period</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2" id="kpi-payback">0.0 Mos</p>
-                    <p class="text-[10px] text-orange-600 mt-1 font-bold">DYNAMIC CALC</p>
-                </div>
-            </div>
-
-            <!-- Dashboard Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span class="w-2 h-6 bg-brand-500 rounded-full"></span>
-                        Projected Savings by Phase
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="dashboardBarChart"></canvas>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
-                        Call Volume Distribution
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="dashboardDoughnutChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ROI MODELER VIEW -->
-        <section id="view-roi" class="hidden space-y-6">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b border-gray-100">
-                    <div>
-                        <h2 class="text-2xl font-bold text-ault-blue">Interactive ROI Modeler</h2>
-                        <p class="text-sm text-gray-500 mt-1">Adjust benefits and costs to simulate financial outcomes.</p>
-                    </div>
-                    <div class="flex bg-gray-100 p-1 rounded-lg mt-4 md:mt-0">
-                        <button onclick="applyPreset('conservative')" id="btn-conservative" class="px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900">Conservative</button>
-                        <button onclick="applyPreset('target')" id="btn-target" class="px-4 py-2 text-sm font-medium rounded-md bg-white shadow text-brand-600 transition-all transform scale-105">Target</button>
-                        <button onclick="applyPreset('optimistic')" id="btn-optimistic" class="px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900">Optimistic</button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    
-                    <!-- LEFT COLUMN: SAVINGS DRIVERS -->
-                    <div class="bg-brand-50 p-6 rounded-xl border border-brand-100">
-                        <h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider mb-8 flex items-center gap-2">
-                            <span class="text-xl">📈</span> Savings Drivers
+                <!-- Tier 1: NEEDED -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-fin-blue px-6 py-3 flex justify-between items-center">
+                        <h3 class="font-bold text-white text-sm uppercase flex items-center gap-2">
+                            <span>1</span> Needed Inputs
                         </h3>
+                        <span class="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded font-bold">CRITICAL</span>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Members (MASTER KNOB) -->
+                        <div class="relative">
+                            <div class="flex justify-between text-xs mb-1 font-bold text-fin-blue">
+                                <span class="flex items-center gap-1">Monthly Billed Members <svg class="w-3 h-3 text-cu-500" fill="currentColor" viewBox="0 0 20 20"><path d="M13 7H7v6h6V7z"></path><path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"></path></svg></span>
+                                <span class="text-lg" id="disp-members">60,000</span>
+                            </div>
+                            <input type="range" id="in-members" min="10000" max="200000" step="1000" value="60000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">Adjusting this correlates all volume metrics below.</p>
+                        </div>
+
+                        <!-- Enrollment -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 font-medium">
+                                <span>Current Autopay %</span>
+                                <span class="text-fin-blue font-bold" id="disp-enroll">28%</span>
+                            </div>
+                            <input type="range" id="in-enroll" min="0" max="100" step="1" value="28" class="w-full">
+                        </div>
+
+                        <!-- Calls (CORRELATED) -->
+                        <div class="correlated-input rounded-r-lg transition-all" id="box-calls">
+                            <div class="flex justify-between text-xs mb-1 font-medium">
+                                <span class="flex items-center gap-1 text-gray-700">Payment Calls / Month <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></span>
+                                <span class="text-fin-blue font-bold" id="disp-calls">12,000</span>
+                            </div>
+                            <input type="range" id="in-calls" min="1000" max="100000" step="100" value="12000" class="w-full">
+                        </div>
+
+                        <!-- Agent Cost -->
+                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">AHT (Min)</label>
+                                <input type="number" id="in-aht" value="4.5" class="w-full mt-1 border-gray-300 rounded text-sm focus:ring-cu-500 focus:border-cu-500 border p-1.5 bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">Hourly Cost ($)</label>
+                                <input type="number" id="in-hourly" value="38" class="w-full mt-1 border-gray-300 rounded text-sm focus:ring-cu-500 focus:border-cu-500 border p-1.5 bg-gray-50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tier 2: RECOMMENDED -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-100 px-6 py-3 flex justify-between items-center border-b border-gray-200">
+                        <h3 class="font-bold text-gray-700 text-sm uppercase flex items-center gap-2">
+                            <span>2</span> Recommended
+                        </h3>
+                        <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">DRIVERS</span>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Failed Rate -->
+                        <div class="correlated-input rounded-r-lg transition-all">
+                            <div class="flex justify-between text-xs mb-1 font-medium">
+                                <span class="flex items-center gap-1">Failed Rate <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></span>
+                                <span class="text-fin-blue font-bold" id="disp-fail">4%</span>
+                            </div>
+                            <input type="range" id="in-fail" min="0" max="15" step="0.5" value="4" class="w-full">
+                            <div class="text-[10px] text-gray-400 mt-1">Est. Volume: <span id="vol-fail" class="font-bold text-gray-600">2,400</span>/mo</div>
+                        </div>
                         
-                        <!-- Cost Per Call -->
-                        <div class="space-y-4 mb-10">
-                            <div class="flex justify-between items-end">
-                                <label class="text-sm font-medium text-gray-600">Cost Per Call</label>
-                                <span class="text-xl font-bold text-gray-900" id="costDisplay">$5.50</span>
+                         <!-- Late Rate -->
+                         <div class="correlated-input rounded-r-lg transition-all">
+                            <div class="flex justify-between text-xs mb-1 font-medium">
+                                <span class="flex items-center gap-1">Late Rate <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></span>
+                                <span class="text-fin-blue font-bold" id="disp-late">9%</span>
                             </div>
-                            <input type="range" min="3.00" max="15.00" step="0.50" value="5.50" id="inputCost" class="w-full">
+                            <input type="range" id="in-late" min="0" max="30" step="0.5" value="9" class="w-full">
+                            <div class="text-[10px] text-gray-400 mt-1">Est. Volume: <span id="vol-late" class="font-bold text-gray-600">5,400</span>/mo</div>
                         </div>
 
-                        <!-- Phase 1 Slider -->
-                        <div class="space-y-4 mb-10 relative">
-                            <div class="absolute -top-6 left-0 text-[10px] font-bold text-brand-700 bg-white px-2 py-0.5 rounded shadow-sm border border-brand-100">PHASE 1 (PROVIDER)</div>
-                            <div class="flex justify-between items-end mt-2">
-                                <label class="text-xs text-gray-400">Deflection %</label>
-                                <span class="text-2xl font-black text-brand-600" id="provRateDisplay">50%</span>
+                        <!-- Avg Invoice -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 font-medium">
+                                <span>Avg Invoice Amount ($)</span>
+                                <span class="text-fin-blue font-bold" id="disp-inv">$145</span>
                             </div>
-                            <input type="range" min="0" max="100" step="1" value="50" id="inputProvRate" class="w-full">
+                            <input type="range" id="in-inv" min="50" max="1000" step="5" value="145" class="w-full">
                         </div>
-
-                         <!-- Phase 2 Slider -->
-                         <div class="space-y-4 mb-10 relative">
-                            <div class="absolute -top-6 left-0 text-[10px] font-bold text-purple-700 bg-white px-2 py-0.5 rounded shadow-sm border border-purple-100">PHASE 2 (MEMBER)</div>
-                            <div class="flex justify-between items-end mt-2">
-                                <label class="text-xs text-gray-400">Deflection %</label>
-                                <span class="text-2xl font-black text-purple-600" id="memRateDisplay">65%</span>
-                            </div>
-                            <input type="range" min="0" max="100" step="1" value="65" id="inputMemRate" class="w-full">
-                        </div>
-
-                        <!-- Phase 3 Slider (NEW) -->
-                        <div class="space-y-4 relative">
-                            <div class="absolute -top-6 left-0 text-[10px] font-bold text-orange-700 bg-white px-2 py-0.5 rounded shadow-sm border border-orange-100">PHASE 3 (AGENT ASSIST)</div>
-                            <div class="flex justify-between items-end mt-2">
-                                <label class="text-xs text-gray-400">Efficiency Gain %</label>
-                                <span class="text-2xl font-black text-orange-600" id="assistRateDisplay">30%</span>
-                            </div>
-                            <input type="range" min="0" max="50" step="1" value="30" id="inputAssistRate" class="w-full">
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN: COST DRIVERS -->
-                    <div class="bg-red-50 p-6 rounded-xl border border-red-100 h-fit">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-sm font-bold text-red-800 uppercase tracking-wider flex items-center gap-2">
-                                <span class="text-xl">💰</span> Program Investment
-                            </h3>
-                            <span class="text-lg font-bold text-red-700" id="totalCostDisplayHeader">$140k</span>
-                        </div>
-
-                        <!-- Cost Sliders Grid -->
-                        <div class="space-y-6">
-                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Platform License</span><span class="font-bold text-red-700" id="disp-cost-plat">$50k</span></div><input type="range" min="0" max="100" step="1" value="50" id="input-cost-plat" class="w-full cost-slider"></div>
-                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Agent License</span><span class="font-bold text-red-700" id="disp-cost-agent">$36k</span></div><input type="range" min="0" max="100" step="1" value="36" id="input-cost-agent" class="w-full cost-slider"></div>
-                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">STT/TTS Usage</span><span class="font-bold text-red-700" id="disp-cost-stt">$10k</span></div><input type="range" min="0" max="50" step="1" value="10" id="input-cost-stt" class="w-full cost-slider"></div>
-                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Professional Services</span><span class="font-bold text-red-700" id="disp-cost-serv">$20k</span></div><input type="range" min="0" max="100" step="5" value="20" id="input-cost-serv" class="w-full cost-slider"></div>
-                            <div><div class="flex justify-between text-xs mb-1"><span class="font-medium text-red-900">Premium Support</span><span class="font-bold text-red-700" id="disp-cost-supp">$24k</span></div><input type="range" min="0" max="50" step="1" value="24" id="input-cost-supp" class="w-full cost-slider"></div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- BOTTOM ROW: Summary Table + Distribution Chart -->
-                <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    <!-- Distribution Chart (NEW) -->
-                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 col-span-1">
-                        <h4 class="text-sm font-bold text-gray-700 mb-4 text-center">Savings Distribution</h4>
-                        <div class="chart-container" style="height: 200px;">
-                            <canvas id="distributionChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Summary Table -->
-                    <div class="col-span-1 lg:col-span-2 overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-                        <table class="min-w-full divide-y divide-gray-200 h-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Metric</th>
-                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Description</th>
-                                    <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Annual Value</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4 text-sm font-bold text-gray-900">Gross Savings</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">Total automated call volume × Cost per call</td>
-                                    <td class="px-6 py-4 text-sm font-bold text-green-600 text-right" id="tableGross">$0</td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4 text-sm font-bold text-gray-900">Total Investment</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">Sum of licenses, services, and support</td>
-                                    <td class="px-6 py-4 text-sm font-bold text-red-600 text-right" id="tableCosts">$0</td>
-                                </tr>
-                                <tr class="bg-brand-50">
-                                    <td class="px-6 py-4 text-sm font-black text-brand-900">NET ANNUAL BENEFIT</td>
-                                    <td class="px-6 py-4 text-sm text-brand-700">Gross Savings - Total Investment</td>
-                                    <td class="px-6 py-4 text-lg font-black text-brand-700 text-right" id="tableNet">$0</td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
+
+                <!-- Solution Cost -->
+                <div class="bg-fin-blue rounded-xl shadow-lg border border-fin-blue overflow-hidden text-white">
+                    <div class="px-6 py-3 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="font-bold text-sm uppercase">Solution Investment</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between text-xs mb-2 font-medium text-gray-300">
+                            <span>Annual License & Support</span>
+                            <span class="text-white font-bold" id="disp-sol">$240,000</span>
+                        </div>
+                        <input type="range" id="in-sol" min="50000" max="500000" step="10000" value="240000" class="w-full accent-cu-500">
+                    </div>
+                </div>
+
             </div>
-        </section>
 
-        <!-- ROADMAP VIEW -->
-        <section id="view-roadmap" class="hidden space-y-8">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                <h2 class="text-2xl font-bold text-ault-blue mb-8">Strategic Execution Roadmap</h2>
-                <div class="relative border-l-2 border-gray-200 ml-4 space-y-12">
-                    <!-- Phase 1 -->
-                    <div class="relative pl-8 group">
-                        <span class="absolute -left-[9px] top-6 h-4 w-4 rounded-full bg-brand-500 ring-4 ring-white group-hover:scale-125 transition-transform"></span>
-                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-brand-200">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                                <h3 class="text-xl font-bold text-gray-900">Phase 1: Provider Deflection</h3>
-                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold mt-2 sm:mt-0">Q4 2025 • Foundation</span>
+            <!-- RIGHT COLUMN: ANALYSIS & LEVERS -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- Performance Levers (The "What If") -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="font-bold text-fin-blue text-sm uppercase mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-cu-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        Automation Performance Levers
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Lever 1 -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-green-300 transition-colors">
+                            <div class="text-xs text-gray-500 uppercase font-bold mb-2">Call Reduction</div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-2xl font-bold text-gray-700" id="lev-call-disp">35%</span>
+                                <span class="text-[10px] text-green-600 font-bold bg-green-100 px-1.5 rounded">Standard</span>
                             </div>
-                            <p class="text-gray-600 mb-6">Focus on high-volume administrative tasks (1,800 calls/week) using QNXT integration.</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="bg-brand-50 p-4 rounded-lg border border-brand-100">
-                                    <h4 class="font-bold text-xs text-brand-800 uppercase mb-3">Key Use Cases</h4>
-                                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
-                                        <li>"Is this patient active & eligible?"</li>
-                                        <li>"Status of claim 12345"</li>
-                                        <li>"Prior Authorization Check"</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                    <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Integrations</h4>
-                                    <div class="flex flex-wrap gap-2">
-                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">QNXT (SQL)</span>
-                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">AudioCodes SBC</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <input type="range" id="lev-call" min="0" max="100" value="35" class="w-full">
                         </div>
-                    </div>
-                    <!-- Phase 2 -->
-                    <div class="relative pl-8 group">
-                        <span class="absolute -left-[9px] top-6 h-4 w-4 rounded-full bg-purple-500 ring-4 ring-white group-hover:scale-125 transition-transform"></span>
-                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-purple-200">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                                <h3 class="text-xl font-bold text-gray-900">Phase 2: Member Deflection</h3>
-                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold mt-2 sm:mt-0">Q1 2026 • Expansion</span>
+                        <!-- Lever 2 -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
+                            <div class="text-xs text-gray-500 uppercase font-bold mb-2">Failed Recovery</div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-2xl font-bold text-gray-700" id="lev-rec-disp">35%</span>
+                                <span class="text-[10px] text-blue-600 font-bold bg-blue-100 px-1.5 rounded">High Value</span>
                             </div>
-                            <p class="text-gray-600 mb-6">Addressing complex member queries (2,600 calls/week) with empathetic AI logic.</p>
-                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                                    <h4 class="font-bold text-xs text-purple-800 uppercase mb-3">Key Use Cases</h4>
-                                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
-                                        <li>"Is Dr. Smith in-network?"</li>
-                                        <li>"What is my co-pay?"</li>
-                                        <li>"Send replacement ID card"</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                    <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Integrations</h4>
-                                    <div class="flex flex-wrap gap-2">
-                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">EBS (Benefits)</span>
-                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">Geo-Location</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <input type="range" id="lev-rec" min="0" max="100" value="35" class="w-full">
                         </div>
-                    </div>
-                    <!-- Phase 3 -->
-                    <div class="relative pl-8 group">
-                        <span class="absolute -left-[9px] top-6 h-4 w-4 rounded-full bg-orange-500 ring-4 ring-white group-hover:scale-125 transition-transform"></span>
-                        <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-orange-200">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                                <h3 class="text-xl font-bold text-gray-900">Phase 3: Agent Assist</h3>
-                                <span class="bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full font-bold mt-2 sm:mt-0">Q2 2026 • Augmentation</span>
+                        <!-- Lever 3 -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-indigo-300 transition-colors">
+                            <div class="text-xs text-gray-500 uppercase font-bold mb-2">Autopay Uplift</div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-2xl font-bold text-gray-700" id="lev-up-disp">+18%</span>
+                                <span class="text-[10px] text-indigo-600 font-bold bg-indigo-100 px-1.5 rounded">Adoption</span>
                             </div>
-                            <p class="text-gray-600 mb-6">Real-time augmentation for residual complex calls to reduce AHT.</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="bg-orange-50 p-4 rounded-lg border border-orange-100">
-                                    <h4 class="font-bold text-xs text-orange-800 uppercase mb-3">Capabilities</h4>
-                                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
-                                        <li>Real-time Transcription</li>
-                                        <li>"Next Best Action" Suggestions</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                    <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Tech Upgrade</h4>
-                                    <div class="flex flex-wrap gap-2">
-                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">SIP Forking</span>
-                                        <span class="font-mono text-xs bg-white border border-gray-200 px-2 py-1 rounded">Agent Desktop UI</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <input type="range" id="lev-up" min="0" max="50" value="18" class="w-full">
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
 
+                <!-- ROI Chart Area -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h4 class="text-sm font-bold text-gray-600 mb-4">Annual Value by Driver</h4>
+                        <div class="h-64 relative w-full">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h4 class="text-sm font-bold text-gray-600 mb-4">Cost vs. Benefit Analysis</h4>
+                         <div class="h-64 relative w-full">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Breakdown Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">ROI Driver</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Correlation Formula</th>
+                                <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">Annual Savings</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                            <!-- Labor -->
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-900">Contact Center Labor</div>
+                                    <div class="text-xs text-gray-400">Call Deflection</div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 text-xs font-mono">
+                                    <span id="txt-labor-hrs" class="font-bold text-gray-700">0</span> hours saved @ $<span id="txt-hr-cost">38</span>/hr
+                                </td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900" id="txt-labor-val">$0</td>
+                            </tr>
+                            <!-- Late Payments -->
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-900">Cash Flow Acceleration</div>
+                                    <div class="text-xs text-gray-400">Late Payment Reduction (20 days float)</div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 text-xs font-mono">
+                                    <span id="txt-late-count" class="font-bold text-gray-700">0</span> fewer late/mo
+                                </td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900" id="txt-late-val">$0</td>
+                            </tr>
+                            <!-- Failed Payments -->
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-900">Revenue Recovery</div>
+                                    <div class="text-xs text-gray-400">Failed Payment Cure</div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 text-xs font-mono">
+                                    <span id="txt-fail-count" class="font-bold text-gray-700">0</span> recovered/mo @ $<span id="txt-inv-cost">145</span>
+                                </td>
+                                <td class="px-6 py-4 text-right font-bold text-blue-600" id="txt-fail-val">$0</td>
+                            </tr>
+                            <!-- Total -->
+                            <tr class="bg-cu-50">
+                                <td class="px-6 py-4 font-bold text-cu-900">TOTAL</td>
+                                <td class="px-6 py-4 text-xs text-cu-700">Combined Annual Impact</td>
+                                <td class="px-6 py-4 text-right font-black text-xl text-cu-700" id="txt-total-val">$0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
     </main>
 
-    <!-- JS Logic -->
     <script>
-        // --- CONSTANTS ---
-        const VOL_PROV = 93600;  
-        const VOL_MEM = 135200;  
-        const VOL_RESID = 100000; 
-
-        // --- STATE ---
+        // --- State ---
         const state = {
-            costPerCall: 5.50,
-            rateProv: 0.50,
-            rateMem: 0.65,
-            rateAssist: 0.30,
-            // Costs (in thousands)
-            costs: {
-                plat: 50,
-                agent: 36,
-                stt: 10,
-                serv: 20,
-                supp: 24
+            members: 60000,
+            enroll: 28,
+            calls: 12000,
+            aht: 4.5,
+            hourly: 38,
+            failRate: 4,
+            lateRate: 9,
+            invoice: 145,
+            solCost: 240000,
+            // Levers
+            levCall: 35,
+            levRec: 35,
+            levUp: 18,
+            // Internal Ratios for Correlation
+            ratios: {
+                callsPerMember: 0.2, // 12k/60k
             }
         };
 
-        const presets = {
-            conservative: { p: 0.40, m: 0.50, a: 0.15 },
-            target: { p: 0.50, m: 0.65, a: 0.30 },
-            optimistic: { p: 0.60, m: 0.80, a: 0.45 }
-        };
-
-        let barChart, doughnutChart, distributionChart;
+        // --- Charts ---
+        let barChart, pieChart;
 
         function initCharts() {
             Chart.defaults.font.family = 'Inter';
-
-            // 1. Dashboard Bar
-            const barCtx = document.getElementById('dashboardBarChart').getContext('2d');
+            
+            // Bar
+            const barCtx = document.getElementById('barChart').getContext('2d');
             barChart = new Chart(barCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Phase 1 (Provider)', 'Phase 2 (Member)', 'Phase 3 (Agent Assist)'],
+                    labels: ['Labor Savings', 'Cash Flow Accel', 'Revenue Recovery'],
                     datasets: [{
-                        label: 'Gross Savings ($)',
+                        label: 'Annual Value',
                         data: [0, 0, 0],
-                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#f97316'],
+                        backgroundColor: ['#94a3b8', '#fbbf24', '#3b82f6'],
                         borderRadius: 6,
-                        barThickness: 40
+                        barThickness: 50
                     }]
                 },
                 options: {
@@ -484,191 +403,191 @@
                 }
             });
 
-            // 2. Dashboard Doughnut (Volume)
-            const doughnutCtx = document.getElementById('dashboardDoughnutChart').getContext('2d');
-            doughnutChart = new Chart(doughnutCtx, {
+            // Pie
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
                 type: 'doughnut',
+                plugins: [ChartDataLabels],
                 data: {
-                    labels: ['Provider', 'Member', 'Residual'],
+                    labels: ['Investment', 'Net Profit'],
                     datasets: [{
-                        data: [VOL_PROV, VOL_MEM, VOL_RESID],
-                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#e2e8f0'],
+                        data: [1, 1],
+                        backgroundColor: ['#ef4444', '#22c55e'],
                         borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-
-            // 3. ROI Distribution Chart (NEW)
-            const distCtx = document.getElementById('distributionChart').getContext('2d');
-            distributionChart = new Chart(distCtx, {
-                type: 'doughnut',
-                plugins: [ChartDataLabels],
-                data: {
-                    labels: ['P1 (Prov)', 'P2 (Mem)', 'P3 (Assist)'],
-                    datasets: [{
-                        data: [1, 1, 1], // Init dummy
-                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#f97316'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { position: 'right', labels: { boxWidth: 12, font: {size: 10} } },
+                    plugins: {
+                        legend: { position: 'bottom' },
                         datalabels: {
-                            color: '#fff',
-                            font: { weight: 'bold', size: 10 },
+                            color: '#fff', font: { weight: 'bold' },
                             formatter: (value, ctx) => {
                                 let sum = 0;
                                 let dataArr = ctx.chart.data.datasets[0].data;
                                 dataArr.map(data => { sum += data; });
+                                if(sum === 0) return "0%";
                                 let percentage = (value*100 / sum).toFixed(0)+"%";
                                 return percentage;
                             }
                         }
-                    },
-                    layout: { padding: 10 }
+                    }
                 }
             });
         }
 
-        function updateCalculations() {
-            // 1. Calculate Gross Savings
-            const cost = state.costPerCall;
-            const rProv = state.rateProv;
-            const rMem = state.rateMem;
-            const rAssist = state.rateAssist;
-
-            const saveProv = VOL_PROV * rProv * cost;
-            const saveMem = VOL_MEM * rMem * cost;
-            const saveAssist = (VOL_RESID * cost) * rAssist;
-
-            const grossSavings = saveProv + saveMem + saveAssist;
-            const totalCalls = (VOL_PROV * rProv) + (VOL_MEM * rMem);
-
-            // 2. Calculate Total Costs
-            const totalCostK = Object.values(state.costs).reduce((a, b) => a + b, 0);
-            const totalCost = totalCostK * 1000;
-
-            // 3. Calculate Net & Payback
-            const netBenefit = grossSavings - totalCost;
-            let payback = 0;
-            if(grossSavings > 0) {
-                payback = (totalCost / grossSavings) * 12;
-            } else {
-                payback = 99; // Cap
-            }
-
-            // 4. Update UI - ROI Modeler Inputs Text
-            document.getElementById('costDisplay').innerText = '$' + cost.toFixed(2);
-            document.getElementById('provRateDisplay').innerText = Math.round(rProv * 100) + '%';
-            document.getElementById('memRateDisplay').innerText = Math.round(rMem * 100) + '%';
-            document.getElementById('assistRateDisplay').innerText = Math.round(rAssist * 100) + '%'; // New
+        // --- Logic ---
+        function calculate() {
+            // 1. Volumes based on Members
+            const latePayers = state.members * (state.lateRate / 100);
+            const failCount = state.members * (state.failRate / 100);
             
-            // Costs Display Text
-            document.getElementById('disp-cost-plat').innerText = '$' + state.costs.plat + 'k';
-            document.getElementById('disp-cost-agent').innerText = '$' + state.costs.agent + 'k';
-            document.getElementById('disp-cost-stt').innerText = '$' + state.costs.stt + 'k';
-            document.getElementById('disp-cost-serv').innerText = '$' + state.costs.serv + 'k';
-            document.getElementById('disp-cost-supp').innerText = '$' + state.costs.supp + 'k';
-            document.getElementById('totalCostDisplayHeader').innerText = '$' + totalCostK + 'k';
+            // Update Volume Displays
+            document.getElementById('vol-fail').innerText = Math.round(failCount).toLocaleString();
+            document.getElementById('vol-late').innerText = Math.round(latePayers).toLocaleString();
 
-            // 5. Update UI - KPI Cards
-            document.getElementById('kpi-savings').innerText = '$' + Math.round(grossSavings).toLocaleString();
-            document.getElementById('kpi-costs').innerText = '$' + Math.round(totalCost).toLocaleString();
-            document.getElementById('kpi-net').innerText = '$' + Math.round(netBenefit).toLocaleString();
-            document.getElementById('kpi-payback').innerText = payback.toFixed(1) + ' Mos';
+            // 2. Labor Savings Logic
+            // Call reduction calculation
+            const callsReducedMo = state.calls * (state.levCall / 100);
+            const hrsSavedMo = (callsReducedMo * state.aht) / 60;
+            const laborSavYr = hrsSavedMo * state.hourly * 12;
 
-            // 6. Update Summary Table
-            document.getElementById('tableGross').innerText = '$' + Math.round(grossSavings).toLocaleString();
-            document.getElementById('tableCosts').innerText = '$' + Math.round(totalCost).toLocaleString();
-            document.getElementById('tableNet').innerText = '$' + Math.round(netBenefit).toLocaleString();
+            // 3. Late Payment Logic (Cash Flow Accel)
+            // 30% reduction assumption from prompt, scaled slightly by uplift lever?
+            // Prompt simplified: "Autopay cuts this by 30%".
+            // Value formula: Count * (Inv * 20/365)
+            const lateReduction = latePayers * 0.30; 
+            const cashFlowValMo = lateReduction * (state.invoice * (20/365));
+            const lateSavYr = cashFlowValMo * 12;
 
-            // 7. Update Charts
-            barChart.data.datasets[0].data = [saveProv, saveMem, saveAssist];
+            // 4. Failed Payment Recovery Logic
+            // Recovery Lever %
+            const recoveredCountMo = failCount * (state.levRec / 100);
+            const recSavYr = recoveredCountMo * state.invoice * 12;
+
+            // Totals
+            const totalBenefit = laborSavYr + lateSavYr + recSavYr;
+            const netBenefit = totalBenefit - state.solCost;
+            
+            // Metrics
+            const roi = totalBenefit / state.solCost;
+            let payback = 0;
+            if(totalBenefit > 0) payback = (state.solCost / totalBenefit) * 12;
+
+            // --- Update UI ---
+            
+            // Top Inputs
+            document.getElementById('disp-members').innerText = Number(state.members).toLocaleString();
+            document.getElementById('disp-enroll').innerText = state.enroll + '%';
+            document.getElementById('disp-calls').innerText = Number(state.calls).toLocaleString();
+            document.getElementById('disp-fail').innerText = state.failRate + '%';
+            document.getElementById('disp-late').innerText = state.lateRate + '%';
+            document.getElementById('disp-inv').innerText = '$' + state.invoice;
+            document.getElementById('disp-sol').innerText = '$' + Number(state.solCost).toLocaleString();
+            
+            // Levers
+            document.getElementById('lev-call-disp').innerText = state.levCall + '%';
+            document.getElementById('lev-rec-disp').innerText = state.levRec + '%';
+            document.getElementById('lev-up-disp').innerText = '+' + state.levUp + '%';
+
+            // KPI Cards
+            document.getElementById('kpi-benefit').innerText = '$' + (totalBenefit / 1000000).toFixed(2) + 'M';
+            document.getElementById('kpi-revenue').innerText = '$' + (recSavYr / 1000000).toFixed(2) + 'M';
+            document.getElementById('kpi-roi').innerText = roi.toFixed(1) + 'x';
+            document.getElementById('kpi-payback').innerText = payback.toFixed(1) + ' Mo';
+
+            // Table Data
+            document.getElementById('txt-labor-hrs').innerText = Math.round(hrsSavedMo * 12).toLocaleString();
+            document.getElementById('txt-hr-cost').innerText = state.hourly;
+            document.getElementById('txt-labor-val').innerText = '$' + Math.round(laborSavYr).toLocaleString();
+            
+            document.getElementById('txt-late-count').innerText = Math.round(lateReduction).toLocaleString();
+            document.getElementById('txt-late-val').innerText = '$' + Math.round(lateSavYr).toLocaleString();
+
+            document.getElementById('txt-fail-count').innerText = Math.round(recoveredCountMo).toLocaleString();
+            document.getElementById('txt-inv-cost').innerText = state.invoice;
+            document.getElementById('txt-fail-val').innerText = '$' + Math.round(recSavYr).toLocaleString();
+
+            document.getElementById('txt-total-val').innerText = '$' + Math.round(totalBenefit).toLocaleString();
+
+            // Charts
+            barChart.data.datasets[0].data = [laborSavYr, lateSavYr, recSavYr];
             barChart.update();
 
-            // Update Distribution Chart
-            distributionChart.data.datasets[0].data = [saveProv, saveMem, saveAssist];
-            distributionChart.update();
+            pieChart.data.datasets[0].data = [state.solCost, (netBenefit > 0 ? netBenefit : 0)];
+            pieChart.update();
         }
 
-        function applyPreset(name) {
-            const p = presets[name];
-            document.getElementById('inputProvRate').value = p.p * 100;
-            document.getElementById('inputMemRate').value = p.m * 100;
-            document.getElementById('inputAssistRate').value = p.a * 100; // New
+        // --- Correlation Engine ---
+        function updateMembers(newVal) {
+            const oldVal = state.members;
+            state.members = parseInt(newVal);
             
-            state.rateProv = p.p;
-            state.rateMem = p.m;
-            state.rateAssist = p.a;
+            // 1. Correlate Calls (Preserve Ratio)
+            const ratioCalls = state.calls / oldVal;
+            // Or simpler: Recalculate based on initial baseline logic, 
+            // but user might have adjusted calls manually. 
+            // Best UX: Scale calls proportionally.
+            const newCalls = Math.round(state.calls * (state.members / oldVal));
+            state.calls = newCalls;
+            document.getElementById('in-calls').value = newCalls;
 
-            ['conservative', 'target', 'optimistic'].forEach(n => {
-                const btn = document.getElementById('btn-' + n);
-                if(n === name) {
-                    btn.classList.add('bg-white', 'shadow', 'text-brand-600', 'scale-105');
-                    btn.classList.remove('text-gray-600', 'hover:text-gray-900');
-                } else {
-                    btn.classList.remove('bg-white', 'shadow', 'text-brand-600', 'scale-105');
-                    btn.classList.add('text-gray-600', 'hover:text-gray-900');
+            // Recalc Main
+            calculate();
+        }
+
+        function updateEnrollment(newVal) {
+            const oldVal = state.enroll;
+            state.enroll = parseInt(newVal);
+
+            // Inverse Correlation Logic:
+            // If Enrollment goes UP, Calls should go DOWN.
+            // Heuristic: For every 1% increase in Autopay, Calls drop by 0.5% (assumption)
+            const delta = state.enroll - oldVal;
+            if(delta !== 0) {
+                // Example: Delta is +10%. Calls drop by 5%.
+                const callImpact = 1 - (delta * 0.005); 
+                const newCalls = Math.round(state.calls * callImpact);
+                // Clamp
+                if(newCalls > 1000) {
+                    state.calls = newCalls;
+                    document.getElementById('in-calls').value = newCalls;
                 }
-            });
-            updateCalculations();
-        }
-
-        function switchTab(tabId) {
-            ['dashboard', 'roi', 'roadmap'].forEach(id => {
-                document.getElementById('view-' + id).classList.add('hidden');
-                document.getElementById('nav-' + id).classList.remove('active', 'text-gray-900');
-                document.getElementById('nav-' + id).classList.add('text-gray-500');
-            });
-            document.getElementById('view-' + tabId).classList.remove('hidden');
-            document.getElementById('nav-' + tabId).classList.add('active', 'text-gray-900');
-            document.getElementById('nav-' + tabId).classList.remove('text-gray-500');
-            
-            if (tabId === 'dashboard') {
-                barChart.resize();
-                doughnutChart.resize();
             }
+            calculate();
         }
 
+        // --- Listeners ---
         window.addEventListener('load', () => {
             initCharts();
-            updateCalculations();
+            // Set initial ratio
+            state.ratios.callsPerMember = state.calls / state.members;
+            calculate();
 
-            // Benefits Sliders
-            document.getElementById('inputCost').addEventListener('input', (e) => {
-                state.costPerCall = parseFloat(e.target.value);
-                updateCalculations();
+            // CORRELATED INPUTS
+            document.getElementById('in-members').addEventListener('input', (e) => { 
+                updateMembers(e.target.value); 
             });
-            document.getElementById('inputProvRate').addEventListener('input', (e) => {
-                state.rateProv = parseInt(e.target.value) / 100;
-                updateCalculations();
-            });
-            document.getElementById('inputMemRate').addEventListener('input', (e) => {
-                state.rateMem = parseInt(e.target.value) / 100;
-                updateCalculations();
-            });
-            // New Phase 3 Slider
-            document.getElementById('inputAssistRate').addEventListener('input', (e) => {
-                state.rateAssist = parseInt(e.target.value) / 100;
-                updateCalculations();
+            document.getElementById('in-enroll').addEventListener('input', (e) => { 
+                updateEnrollment(e.target.value);
             });
 
-            // Cost Sliders
-            ['plat', 'agent', 'stt', 'serv', 'supp'].forEach(key => {
-                document.getElementById('input-cost-' + key).addEventListener('input', (e) => {
-                    state.costs[key] = parseInt(e.target.value);
-                    updateCalculations();
-                });
-            });
+            // STANDARD INPUTS
+            document.getElementById('in-calls').addEventListener('input', (e) => { state.calls = parseFloat(e.target.value); calculate(); });
+            document.getElementById('in-fail').addEventListener('input', (e) => { state.failRate = parseFloat(e.target.value); calculate(); });
+            document.getElementById('in-late').addEventListener('input', (e) => { state.lateRate = parseFloat(e.target.value); calculate(); });
+            document.getElementById('in-inv').addEventListener('input', (e) => { state.invoice = parseFloat(e.target.value); calculate(); });
+            document.getElementById('in-sol').addEventListener('input', (e) => { state.solCost = parseFloat(e.target.value); calculate(); });
+
+            // Manual inputs
+            document.getElementById('in-aht').addEventListener('input', (e) => { state.aht = parseFloat(e.target.value); calculate(); });
+            document.getElementById('in-hourly').addEventListener('input', (e) => { state.hourly = parseFloat(e.target.value); calculate(); });
+
+            // Levers
+            document.getElementById('lev-call').addEventListener('input', (e) => { state.levCall = parseFloat(e.target.value); calculate(); });
+            document.getElementById('lev-rec').addEventListener('input', (e) => { state.levRec = parseFloat(e.target.value); calculate(); });
+            document.getElementById('lev-up').addEventListener('input', (e) => { state.levUp = parseFloat(e.target.value); calculate(); });
         });
 
     </script>
